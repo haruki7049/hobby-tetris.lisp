@@ -27,8 +27,8 @@
       perSystem =
         { pkgs, lib, ... }:
         let
-          tetris = pkgs.sbcl.buildASDFSystem rec {
-            pname = "tetris";
+          reversi = pkgs.sbcl.buildASDFSystem rec {
+            pname = "reversi";
             version = "unstable";
             src = lib.cleanSource ./.;
 
@@ -36,8 +36,8 @@
               pkgs.makeWrapper
             ];
 
-            nativeLibs = [
-              pkgs.ncurses
+            propagatedNativeBuildInputs = [
+              pkgs.tclPackages.tk
             ];
 
             qlBundleLibs = pkgs.stdenvNoCC.mkDerivation {
@@ -74,14 +74,15 @@
               dontBuild = true;
               dontFixup = true;
               outputHashMode = "recursive";
-              outputHash = "sha256-lPfkkcZvyfzp2xkG4sVWF4kvNZnETkcAR2ALROfx3VA=";
+              #outputHash = "sha256-gOClnFljwVEwXbr39JlEQ2vcZeXsI5SNXbwg6+hHB1o=";
+              outputHash = "sha256-En6YnPUeCF1TXK/0rNDr5Iywj85vmyG5ZcMBlueJqPA=";
             };
 
             configurePhase = ''
               runHook preConfigure
-              mkdir -p $out/share/tetris
+              mkdir -p $out/share/reversi
               (
-                cd $out/share/tetris
+                cd $out/share/reversi
                 cp -r $qlBundleLibs .bundle-libs
                 chmod -R +w .bundle-libs
               )
@@ -92,12 +93,12 @@
               runHook postConfigure
             '';
 
-            buildScript = pkgs.writeText "build-tetris.lisp" ''
+            buildScript = pkgs.writeText "build-reversi.lisp" ''
               (defpackage :nix-cl-user
                 (:use :cl))
 
               (in-package :nix-cl-user)
-              (load "${tetris.asdfFasl}/asdf.${tetris.faslExt}")
+              (load "${reversi.asdfFasl}/asdf.${reversi.faslExt}")
 
               ;; Avoid writing to the global fasl cache
               (asdf:initialize-output-translations
@@ -108,7 +109,7 @@
               (defvar *out-path* (uiop:getenv "out"))
               (defvar *share-path* (concatenate 'string
                                     *out-path*
-                                    "/share/tetris"))
+                                    "/share/reversi"))
               (defvar *bundle-path* (concatenate 'string
                                     *share-path*
                                     "/.bundle-libs/bundle.lisp"))
@@ -126,9 +127,9 @@
                   (load *bundle-path*))
                    nil)
 
-              (setf uiop:*image-entry-point* #'tetris:main)
+              (setf uiop:*image-entry-point* #'reversi:main)
               (uiop:dump-image
-                "tetris"
+                "reversi"
                 :executable t
                 :compression t)
             '';
@@ -136,12 +137,12 @@
             installPhase = ''
               runHook preInstall
 
-              mkdir -p $out/bin $out/share/tetris
-              mv tetris $out/bin
-              wrapProgram $out/bin/tetris \
-                --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath nativeLibs}"
+              mkdir -p $out/bin $out/share/reversi
+              mv reversi $out/bin
+              wrapProgram $out/bin/reversi \
+                --prefix PATH : "${lib.makeBinPath propagatedNativeBuildInputs}"
 
-              cp -r $src $out/share/tetris
+              cp -r $src $out/share/reversi
 
               runHook postInstall
             '';
@@ -154,8 +155,8 @@
           };
 
           packages = {
-            inherit tetris;
-            default = tetris;
+            inherit reversi;
+            default = reversi;
           };
 
           devShells.default = pkgs.mkShell {
