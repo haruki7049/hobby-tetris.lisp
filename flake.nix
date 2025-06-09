@@ -22,15 +22,23 @@
             version = "unstable";
             src = lib.cleanSource ./.;
 
+            nativeBuildInputs = [
+              pkgs.makeWrapper
+            ];
+
+            nativeLibs = [
+	      pkgs.ncurses
+	    ];
+
             qlBundleLibs = pkgs.stdenvNoCC.mkDerivation {
               pname = "${pname}-qlot-bundle";
               inherit src version;
 
-              nativeBuildInputs = with pkgs; [
-                sbcl.pkgs.qlot-cli
-                which
-                git
-                cacert
+              nativeBuildInputs = [
+                pkgs.sbclPackages.qlot-cli
+                pkgs.which
+                pkgs.git
+                pkgs.cacert
               ];
 
               installPhase = ''
@@ -56,10 +64,7 @@
               dontBuild = true;
               dontFixup = true;
               outputHashMode = "recursive";
-              outputHash = if pkgs.stdenv.isDarwin then
-                "sha256-lPfkkcZvyfzp2xkG4sVWF4kvNZnETkcAR2ALROfx3VA="
-              else
-                "";
+              outputHash = "sha256-lPfkkcZvyfzp2xkG4sVWF4kvNZnETkcAR2ALROfx3VA=";
             };
 
             configurePhase = ''
@@ -123,6 +128,8 @@
 
               mkdir -p $out/bin $out/share/tetris
               mv tetris $out/bin
+              wrapProgram $out/bin/tetris \
+                --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath nativeLibs}"
 
               cp -r $src $out/share/tetris
 
