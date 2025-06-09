@@ -1,6 +1,5 @@
 (defpackage :tetris
-  (:use :cl
-        :cl-tui)
+  (:use :cl :cl-tui)
   (:export :main))
 (in-package :tetris)
 

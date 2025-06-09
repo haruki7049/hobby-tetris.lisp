@@ -9,13 +9,23 @@
       url = "github:hercules-ci/flake-parts";
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import inputs.systems;
 
-      perSystem = { pkgs, lib, ... }:
+      imports = [
+        inputs.treefmt-nix.flakeModule
+      ];
+
+      perSystem =
+        { pkgs, lib, ... }:
         let
           tetris = pkgs.sbcl.buildASDFSystem rec {
             pname = "tetris";
@@ -27,8 +37,8 @@
             ];
 
             nativeLibs = [
-	      pkgs.ncurses
-	    ];
+              pkgs.ncurses
+            ];
 
             qlBundleLibs = pkgs.stdenvNoCC.mkDerivation {
               pname = "${pname}-qlot-bundle";
@@ -138,17 +148,22 @@
           };
         in
         {
+          treefmt = {
+            projectRootFile = "flake.nix";
+            programs.nixfmt.enable = true;
+          };
+
+          packages = {
+            inherit tetris;
+            default = tetris;
+          };
+
           devShells.default = pkgs.mkShell {
             nativeBuildInputs = [
               # Lisp
               pkgs.sbcl
               pkgs.sbclPackages.qlot-cli
             ];
-          };
-
-          packages = {
-            inherit tetris;
-            default = tetris;
           };
         };
     };
