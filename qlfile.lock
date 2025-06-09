@@ -1,0 +1,12 @@
+("quicklisp" .
+ (:class qlot/source/dist:source-dist
+  :initargs (:distribution "https://beta.quicklisp.org/dist/quicklisp.txt" :%version :latest)
+  :version "2024-10-12"))
+("cl-tui" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "naryl/cl-tui" :ref nil :branch nil :tag nil)
+  :version "github-4e8a06f50c682fba48884e5a35a6d16101298c08"))
+("arrow-macros" .
+ (:class qlot/source/github:source-github
+  :initargs (:repos "hipeta/arrow-macros" :ref nil :branch nil :tag nil)
+  :version "github-16bdfd31298182099c7d70df4598104e5a38b05e"))
